@@ -4,10 +4,12 @@ import {readFileSync} from "node:fs";
 import {pathToFileURL} from "node:url";
 import {planCustomer} from "./plan-customer.mjs";
 
-export async function verifyWebsite(input,{cloudflareToken,fetchFn=fetch}={}) {
+export async function verifyWebsite(input,{cloudflareToken,expectedCommitSha,fetchFn=fetch}={}) {
   const plan=planCustomer(input);
   if(plan.forms||input.hostname)throw Error("This verifier currently supports only website-only pages.dev projects");
   if(!cloudflareToken)throw Error("CLOUDFLARE_API_TOKEN is required for deployment verification");
+  if(expectedCommitSha!==undefined&&(typeof expectedCommitSha!=="string"||!/^[a-f0-9]{40}$/i.test(expectedCommitSha)))
+    throw Error("Expected commit SHA must be a full 40-character GitHub commit hash");
   const projectName="esp-"+plan.customer+"-site";
   const website="https://"+projectName+".pages.dev";
   const apiUrl="https://api.cloudflare.com/client/v4/accounts/"+encodeURIComponent(plan.accountId)+"/pages/projects/"+encodeURIComponent(projectName);
@@ -25,6 +27,11 @@ export async function verifyWebsite(input,{cloudflareToken,fetchFn=fetch}={}) {
   const latestStage=latest?.latest_stage;
   if(stage?.name!=="deploy"||stage?.status!=="success")
     return {status:"pending-deployment",website,project:projectName,latestStage:latestStage?.name||null,latestStatus:latestStage?.status||null};
+  // A previously live deployment does not prove the newly approved revision is live.
+  // Cloudflare exposes the GitHub revision on the canonical production deployment.
+  const deployedCommit=canonical?.deployment_trigger?.metadata?.commit_hash||null;
+  if(expectedCommitSha&&deployedCommit?.toLowerCase()!==expectedCommitSha.toLowerCase())
+    return {status:"pending-expected-commit",website,project:projectName,expectedCommit:expectedCommitSha,deployedCommit};
   const page=await fetchFn(website+"/",{method:"GET",redirect:"manual",signal:AbortSignal.timeout(15000)});
   if(page.status!==200)
     return {status:"pending-public-reachability",website,project:projectName,httpStatus:page.status};
