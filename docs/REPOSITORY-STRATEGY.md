@@ -2,11 +2,11 @@
 
 ## Decision
 
-**Launch & Own** (*Describe it. Launch it. Own it.*) is the product. Brittney Michelle is a verified customer reference site, not the product name.**
+**Launch & Own** (*Describe it. Launch it. Own it.*) is the product. Brittney Michelle is a verified customer reference site, not the product name.
 
-The current GitHub repository `mitchelldawkinsjr/Brittney-Site` was created for that customer's website and later accumulated the reusable pipeline and hosted onboarding application. It should not permanently carry a customer name as the product's canonical source repository.
+The original GitHub repository `mitchelldawkinsjr/Brittney-Site` began with the Brittney reference website. The dedicated product repository [`mitchelldawkinsjr/launch-and-own`](https://github.com/mitchelldawkinsjr/launch-and-own) has now been initialized with a curated, customer-free source import (PR #1). The original repository stays intact for the verified reference deployment.
 
-## Recommended target layout
+## Established repository layout
 
 - **Product repository:** `mitchelldawkinsjr/launch-and-own` — version-controlled customer-agnostic `pipeline/`, `onboarding/`, documentation, CI, templates, future plugin source, and a non-customer-specific demonstration.
 - **Reference customer repository:** `mitchelldawkinsjr/Brittney-Site` — `public/`, customer-specific `forms/`, website QA and deployment settings. The reference can consume tagged product releases or curated customer-specific setup outputs when appropriate.
@@ -23,8 +23,8 @@ The available GitHub connection can update files and open PRs, but currently doe
 ## Non-disruptive extraction sequence
 
 1. Keep the current repo and Brittney deployment unchanged while product code matures.
-2. Create **new** `launch-and-own` repository under the correct owner through an authorized GitHub interface, with narrowly scoped permissions and an approved visibility setting. Do not clone or move customers' form submissions or secret bindings.
-3. Copy and test *only* product modules (`pipeline/`, `onboarding/`, supporting CI/docs and generic tests). Replace any Brittney-specific values and reference URLs in product defaults with generated config. Configure product-owned but **isolated** onboarding D1/OAuth/Worker resources.
+2. **Completed:** `launch-and-own` repository created under the proper owner, with publicly visible source. No customer form submissions or secrets were imported.
+3. **Completed:** copied and tested *only* product modules (`pipeline/`, `onboarding/`, supporting CI/docs and generic tests). Replace any Brittney-specific values and reference URLs in product defaults with generated config. Configure product-owned but **isolated** onboarding D1/OAuth/Worker resources.
 4. Create a clean product README, security guidance, license chosen by the owner, and product-specific actions, release process and issues.
 5. Run the same tests in the new repo. Obtain a second customer OAuth/login + provisioning/verification acceptance test before calling public beta live.
 6. Update developer docs and references in the Brittney repo to the new product repository. Keep Brittney's Pages GitHub integration on its existing repo.
@@ -34,11 +34,11 @@ The available GitHub connection can update files and open PRs, but currently doe
 
 - Product/source identity in README and agent documentation: **updated in this PR**.
 - Existing GitHub repository **name, URL, description/topics:** **not changed**.
-- New dedicated product GitHub repository: **not created**.
+- New dedicated product GitHub repository: **created**, imported via [Launch & Own PR #1](https://github.com/mitchelldawkinsjr/launch-and-own/pull/1), standalone CI tested.
 - Brittney GitHub→Cloudflare Pages connection: **preserved**.
 - Hosted OAuth onboarding: **code merged, not configured/deployed**.
 
-Until repository separation, treat the current repository as a **temporary combined product/reference source** and enforce strict tenant separation at the code and infrastructure layers.
+Repository separation is now established: treat this repository as the **customer reference** and the new repository as the **canonical product source**. Keep customer site and form resources isolated.
 
 
 ## Portable product-only export
@@ -54,6 +54,6 @@ node scripts/export-launch-and-own.mjs /tmp/launch-and-own-export
 
 The exported `onboarding/wrangler.jsonc` deliberately contains `REPLACE_WITH_INDEPENDENT_D1_UUID` and **must not** be deployed until a new, authorized onboarding database is configured. OAuth app registrations and secrets are not packaged. No repository is created merely by generating the ZIP.
 
-**After** creating the empty `mitchelldawkinsjr/launch-and-own` repository, import the ZIP's `launch-and-own/` contents to that repo on a feature branch and verify its CI before adopting it as canonical. Leave the original Brittney Cloudflare GitHub integration intact.
+**Completed:** The dedicated repository was created, and the curated product source imported on [PR #1](https://github.com/mitchelldawkinsjr/launch-and-own/pull/1). Its independent test CI passed. The original Brittney Pages GitHub integration remains connected to the original repository.
 
 **Licensing:** The export intentionally includes no license until the owner selects one.
