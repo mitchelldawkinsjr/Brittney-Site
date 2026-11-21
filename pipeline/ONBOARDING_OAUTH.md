@@ -1,6 +1,6 @@
 # Customer onboarding: connect accounts, approve, launch
 
-This is the **target customer experience**, not a statement that a hosted OAuth login or a published ChatGPT plugin is already live. Current executable provisioning is in `pipeline/provision-site.mjs` and still needs authorized GitHub and Cloudflare bearer credentials.
+This describes the **target customer experience** and the currently implemented source code. A standalone onboarding Worker now exists under `onboarding/` with OAuth callback routes, session encryption, account selection and explicit launch approval; it is **not publicly deployed or connected to registered OAuth applications**. The product is not publicly available or a published ChatGPT plugin. The operator-only `pipeline/provision-site.mjs` CLI still uses securely supplied provider credentials.
 
 ## Intended experience (no terminal or API keys for customers)
 
@@ -12,7 +12,7 @@ This is the **target customer experience**, not a statement that a hosted OAuth 
 6. Server provisions or reuses a customer-isolated repository and Cloudflare project. The contact-form path additionally requires independent D1, Worker, Turnstile and Access resources and is currently blocked pending full implementation.
 7. Server verifies that deployment succeeded and that the public website responds; show the URL and future editing instructions. Later changes follow an approval/PR/test/deploy process.
 
-## Cloudflare OAuth library — implemented, but not wired into a hosted callback
+## Cloudflare OAuth library — implemented and called by the unhosted onboarding Worker
 
 `pipeline/cloudflare-oauth.mjs` exports:
 
@@ -21,22 +21,23 @@ This is the **target customer experience**, not a statement that a hosted OAuth 
 - `verifyCloudflareAccount({accessToken,accountId})`: validates that the token can read the selected account and that its ID matches.
 - `verifyProviderConnections(customerConfig,{githubAccessToken,cloudflareAccessToken})`: separately verifies the real GitHub user and Cloudflare account, without provisioning resources. Its response explicitly reports that **Cloudflare's GitHub integration is not yet verified**.
 
-## GitHub App OAuth primitives — implemented, not hosted
+## GitHub App OAuth primitives — implemented and called by the unhosted onboarding Worker
 
 `pipeline/github-app-oauth.mjs` exports:
 
 - `beginGitHubAppOAuth({clientId,redirectUri,offlineAccess=true})` builds a GitHub App authorization URL using state and PKCE S256. `offline_access` requests expiring user access and refresh tokens without requesting any conventional OAuth repository scopes; GitHub App permissions are configured in the GitHub App registration.
 - `completeGitHubAppOAuth({clientId,clientSecret,redirectUri,code,receivedState,expectedState,codeVerifier})` rejects missing or mismatched state and exchanges the code through `https://github.com/login/oauth/access_token`. The confidential client secret and returned user/refresh tokens **must remain in the backend**.
-- These functions do not install the GitHub App, create a user-facing callback route, persist or rotate tokens, or grant Cloudflare's GitHub integration access. Those steps remain separate.
+- The standalone `onboarding/worker.mjs` includes a callback route and session-scoped encrypted token storage. The GitHub App **registration/installation** and **public Worker deployment** are still outstanding, as are refresh-token rotation, disconnect/revocation and authorization of Cloudflare's separate GitHub integration.
 
 See [Generating a user access token for a GitHub App](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app). The authenticated user-to-server access token must have the GitHub App's **repository creation** permission and contents permissions for the initial repo bootstrap. An installation token alone is not interchangeable with the user token used by the current `POST /user/repos` executor.
 
-The hosting application must still implement:
-- Cloudflare OAuth client registration and required domain verification to make the client **public**, plus exact HTTPS callback registration.
-- A backend session (secure, HttpOnly, SameSite cookie), short expiration, state tied to the logged-in user, **atomic one-time consumption** of state, token encryption at rest and revocation/disconnect.
-- GitHub App registration, install/authorize callback, secure user-to-server token handling, minimum user **repository creation** permission and repository contents write permission.
-- Account-selection UI, Cloudflare Workers & Pages GitHub App consent/permission detection, server-side final approval, application-specific tenant isolation and job orchestration.
-- Real second-customer OAuth and provisioning acceptance tests. No production OAuth client is registered by this PR.
+The **remaining integration and release steps** are:
+- Register a Cloudflare OAuth client, verify the app's domain ownership, choose required scopes, and explicitly authorize any change to **public** visibility. Register the exact HTTPS callback.
+- Register/install the GitHub App with minimal permissions and exact callback. The callback route, short-lived session, one-time state and encrypted token handling are implemented in the Worker source, but not deployed.
+- Deploy a separate onboarding Worker and dedicated D1 database; configure domain, secrets, rate limits, retention, and monitoring. Finish refresh-token lifecycle and revocation/disconnect before opening a public beta.
+- Confirm permission/installation for Cloudflare Workers & Pages GitHub App on the customer's newly created repository. A different app cannot grant this on its behalf.
+- Complete independent provider end-to-end tests and customer launch. A successful mocked test is not a verified third-party OAuth login or public deployment.
+- Keep the customer's preview, final approval, and account-isolated resource provisioning; add durable job orchestration and failure alerts.
 
 Cloudflare supports OAuth Authorization Code, and PKCE S256 for public clients. To become publicly usable, a Cloudflare OAuth client needs verified ownership of the client domain, name, logo, URL and scopes. Obtain the **exact** required scopes from the official `GET /oauth/scopes` API, not guessed scope identifiers.
 
@@ -62,8 +63,8 @@ GitHub documentation:
 
 ## Two deployment strategies
 
-**ChatGPT plugin/connected-app-first (preferred beta UX):** the user connects GitHub and Cloudflare to ChatGPT, and the orchestrator uses those authorized connector capabilities directly. This route need not give the user API keys; exact provider permissions and supported API operations must be confirmed. A public plugin still needs separate publication and authorization work.
+**ChatGPT plugin/connected-app-first (future integration UX):** the user connects GitHub and Cloudflare to ChatGPT, and the orchestrator uses those authorized connector capabilities directly. This route need not give the user API keys; exact provider permissions and supported API operations must be confirmed. A public plugin still needs separate publication and authorization work.
 
-**Standalone self-service portal:** the portal owns the GitHub App and Cloudflare OAuth client, redirects customers to each provider's consent flow, and stores encrypted tokens server-side. The two strategies can share the same plan, provisioning checks and deployment verifier.
+**Standalone self-service portal (source implemented, unhosted):** the portal uses a product GitHub App and Cloudflare OAuth client, redirects customers to each provider's consent flow, and stores encrypted, session-scoped tokens server-side. The two strategies can share the same plan, provisioning checks and deployment verifier.
 
 Current repo's manually dispatched GitHub Action is an **operator-only fallback**, not the final customer onboarding experience.
