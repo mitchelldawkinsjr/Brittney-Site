@@ -42,7 +42,7 @@ test("queued old deployment cannot be reported as a successful launch",async()=>
 });
 test("missing credentials stop launch before provider mutations",async()=>{
  let created=0;
- await assert.rejects(launchWebsite(input,{githubToken:"token",create:async()=>{created++}}),/both/);
+ await assert.rejects(launchWebsite(input,{githubToken:"token",create:async()=>{created++}}),/Authorized GitHub and Cloudflare tokens/);
  assert.equal(created,0);
 });
 test("custom polling options are forwarded to verification",async()=>{
