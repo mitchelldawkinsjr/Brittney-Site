@@ -1,8 +1,8 @@
-# Elite Site Pipeline — repository instructions
+# Launch & Own — repository instructions
 
-**Primary project:** a customer-owned, conversational, low-to-no-cost website creation and maintenance pipeline using GitHub, Cloudflare and ChatGPT. **Current repository slug** `Brittney-Site` is a legacy name because this repository began as a single customer website. It now contains reusable pipeline code, a standalone unhosted onboarding Worker, and the live **Brittney staging reference**.
+**Primary project:** **Launch & Own** — a customer-owned, conversational, low-to-no-cost website creation and maintenance pipeline using GitHub, Cloudflare and ChatGPT. **Current repository slug** `Brittney-Site` is a legacy name because this repository began as a single customer website. It now contains reusable pipeline code, a standalone unhosted onboarding Worker, and the live **Brittney staging reference**.
 
-Read [README.md](README.md) for product goals, boundaries and status, and [docs/REPOSITORY-STRATEGY.md](docs/REPOSITORY-STRATEGY.md) before reorganizing paths or renaming the GitHub repository.
+Use the product name **Launch & Own**, tagline **Describe it. Launch it. Own it.**, and proposed canonical repository slug `launch-and-own`. Read [README.md](README.md) for product goals, boundaries and status, and [docs/REPOSITORY-STRATEGY.md](docs/REPOSITORY-STRATEGY.md) before reorganizing paths or renaming the GitHub repository.
 
 ## Code ownership and hard boundaries
 
