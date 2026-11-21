@@ -13,7 +13,7 @@
   "vars": {
     "EMAIL_MODE": "disabled",
     "ALLOWED_ORIGIN": "https://elite-pipeline-brittney-michelle-test.pages.dev",
-    "TURNSTILE_SITEKEY": "0x4AAAAAAGLxzxACKN8gQO3"
+    "TURNSTILE_SITEKEY": "0x4AAAAAAGLxzxACKN8gQ003"
   },
   "ratelimits": [
     {
