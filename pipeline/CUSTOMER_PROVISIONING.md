@@ -1,28 +1,47 @@
-# Customer provisioning: milestone 2
+# Customer website provisioning — milestone 2
 
-This is the **first implementation milestone**, not a one-click live provisioner. The plan generator produces a deterministic, reviewable resource graph and **makes no API calls**. It never handles credentials.
+The verified Brittney site is the reference implementation. This milestone adds a **website-only** executor for a new customer's **personal GitHub account** and a Cloudflare Pages project already authorized to access the account's GitHub repositories.
 
-Run locally with Node 22:
+## Preview by default
 
-```sh
-node --test pipeline/plan-customer.test.mjs
-node pipeline/plan-customer.mjs customer.json
-```
-
-Example `customer.json`:
+Node.js 22 or newer. Create an untracked `customer.json` file:
 
 ```json
-{"name":"Second Customer","accountId":"YOUR_32_CHARACTER_CLOUDFLARE_ACCOUNT_ID","githubOwner":"YOUR_GITHUB_USERNAME","forms":false}
+{
+  "name": "Second Customer",
+  "accountId": "0123456789abcdef0123456789abcdef",
+  "githubOwner": "your-github-username",
+  "forms": false
+}
 ```
 
-Forms are disabled unless `forms:true` and a valid `ownerEmail` are supplied. The plan identifies the resources and their dependencies but does not create them.
+```sh
+node pipeline/provision-site.mjs customer.json
+node --test pipeline/plan-customer.test.mjs pipeline/provision-site.test.mjs
+```
 
-## Remaining implementation
+Preview shows the resource graph and makes no provider requests. Commit only non-sensitive configuration if necessary; **never commit API tokens or Turnstile secrets**.
 
-- Authorized, idempotent GitHub repo and Pages provisioning with ownership collision checks.
-- D1 schema migration, Worker deployment and secret inheritance.
-- Turnstile creation and protected Cloudflare Access dashboard with explicit owner authorization.
-- Live deployment checks, human Turnstile submission, dashboard login and failure recovery.
-- A second independent customer environment for acceptance testing.
+## Authorized apply
 
-Never reuse the staging customer's secrets, database or Access policy for another customer. Keep email notifications disabled by default.
+Provide credentials through the runner's secret store or your session environment, then explicitly opt in to writing resources:
+
+```sh
+GITHUB_TOKEN=... CLOUDFLARE_API_TOKEN=... node pipeline/provision-site.mjs customer.json --apply
+```
+
+For a nontechnical beta tester, a repository maintainer can instead run the manual **Provision customer website** GitHub Actions workflow. Before dispatch, install `SITE_PIPELINE_GH_TOKEN` and `CLOUDFLARE_API_TOKEN` as Actions secrets; fill in customer name, GitHub owner, and Cloudflare account ID. The GitHub token needs authorization to create **private personal repositories** and write their contents; the Cloudflare token needs permission to create/read Pages projects in the chosen account. Cloudflare's GitHub Pages integration **must already be installed and authorized for new repositories**. Configure minimum practical permissions and rotate/revoke temporary credentials after use.
+
+The executor checks the authenticated GitHub user's identity, creates a **private** repository named `esp-{slug}` with a unique pipeline ownership marker, adds `public/index.html` only if absent, then creates `esp-{slug}-site` as a Git-connected Cloudflare Pages project. An existing repository must match the marker, owner, expected name, and private visibility. An existing Pages project must match the repository ID and production branch. Any mismatch **stops the process** rather than taking over another project.
+
+A retry preserves user-edited site files and reuses matching resources. A failed run may leave newly created resources in place for safe resumability; it **never auto-deletes** them. Every apply result reports `awaiting-live-deployment-verification`, not `success`: a separate check must confirm Cloudflare build completion and that the public site actually loads.
+
+## Intentionally not yet supported
+
+- **Contact forms** (`forms:true`) are rejected **before any API writes**. Each customer needs independent D1 schema, Turnstile secret, Worker, and Cloudflare Access policy, followed by real submission/login tests. The previously validated staging owner's credentials and data must never be shared with another customer.
+- **Custom domains** (`hostname`) are rejected before writes. DNS ownership and certificate validation must be authorized separately.
+- **Organization GitHub owners** are blocked until organization-scoped authorization is implemented.
+- Deployments can be queued or fail after project creation. The executor does not claim the site is live.
+- Automated image design, rollback, ongoing content generation, and full hands-off onboarding are future milestones.
+
+No paid email service or email notifications are configured.
