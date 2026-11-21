@@ -39,3 +39,21 @@ The available GitHub connection can update files and open PRs, but currently doe
 - Hosted OAuth onboarding: **code merged, not configured/deployed**.
 
 Until repository separation, treat the current repository as a **temporary combined product/reference source** and enforce strict tenant separation at the code and infrastructure layers.
+
+
+## Portable product-only export
+
+Use **Build Launch & Own portable source**, the manually triggered GitHub Actions workflow in `.github/workflows/product-export.yml`, to generate a downloadable artifact named `launch-and-own-product-source`. The ZIP contains a **standalone** `launch-and-own/` source tree with product modules, an isolated onboarding D1 template, a dedicated CI workflow, and a new product README. It excludes the Brittney site (`public/`), customer forms (`forms/`), site-specific feature manifests, contact data, and customer Cloudflare IDs.
+
+The exporter is safe to run locally with Node.js 22+, and its regression suite includes running the exported product's own tests:
+
+```sh
+node --test scripts/export-launch-and-own.test.mjs
+node scripts/export-launch-and-own.mjs /tmp/launch-and-own-export
+```
+
+The exported `onboarding/wrangler.jsonc` deliberately contains `REPLACE_WITH_INDEPENDENT_D1_UUID` and **must not** be deployed until a new, authorized onboarding database is configured. OAuth app registrations and secrets are not packaged. No repository is created merely by generating the ZIP.
+
+**After** creating the empty `mitchelldawkinsjr/launch-and-own` repository, import the ZIP's `launch-and-own/` contents to that repo on a feature branch and verify its CI before adopting it as canonical. Leave the original Brittney Cloudflare GitHub integration intact.
+
+**Licensing:** The export intentionally includes no license until the owner selects one.
