@@ -1,0 +1,2 @@
+CREATE TABLE IF NOT EXISTS submissions (id TEXT PRIMARY KEY, form_id TEXT NOT NULL, name TEXT NOT NULL, email TEXT NOT NULL, message TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, is_read INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS submissions_created_idx ON submissions(created_at DESC);
