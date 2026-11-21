@@ -1,16 +1,18 @@
-# Elite Site Pipeline — Hosted Customer Onboarding (beta service)
+# Launch & Own — Hosted Customer Onboarding (beta service)
+
+The customer-facing name is **Launch & Own**, with the tagline **Describe it. Launch it. Own it.** Internal prelaunch worker/database identifiers beginning with `elite-site-` remain unchanged temporarily to preserve the already-provisioned isolated beta D1; these are infrastructure identifiers, not the product's name.
 
 This directory contains an **independent Cloudflare Worker** for nontechnical website customers. It is not wired into the existing Brittney site, and **it must not be deployed publicly until OAuth applications, a dedicated database, and the domain are configured**.
 
 ## Customer journey
 
-1. Visit the onboarding URL, choose **Connect GitHub**, and consent through the Elite Site Pipeline GitHub App.
+1. Visit the onboarding URL, choose **Connect GitHub**, and consent through the Launch & Own GitHub App.
 2. Choose **Connect Cloudflare** and approve the minimal Cloudflare scopes, then select an account you own.
 3. Enter a website name, review the planned **private repository** and **public Pages URL**, and explicitly click **Approve and create website**.
 4. The server uses the user's connected tokens to run the existing idempotent `applyWebsite` provisioner. Credentials are never exposed to the browser or logged.
 5. A Pages project may be queued; the customer chooses **Check live deployment**. Only a successful canonical production deployment for the **exact approved GitHub commit** plus an HTTP 200 HTML response can move the status to `live`. A previously successful but stale deployment remains pending. On a failed setup, retry reuses exact ownership-matched resources without deleting anything.
 
-Cloudflare's **Workers & Pages GitHub App** requires its **own** installation/authorization on the customer's GitHub account; the Elite Site Pipeline GitHub App connection is not a substitute. A private repository may need to be explicitly added to Cloudflare's GitHub installation if its repository access is restricted.
+Cloudflare's **Workers & Pages GitHub App** requires its **own** installation/authorization on the customer's GitHub account; the Launch & Own GitHub App connection is not a substitute. A private repository may need to be explicitly added to Cloudflare's GitHub installation if its repository access is restricted.
 
 The current website-only beta creates a basic, clearly labeled starter homepage. **It does not yet generate a full AI-designed business website, set up contact forms, connect custom domains, or send email**. Those are separate milestones. No payment/billing or DNS changes occur.
 
