@@ -48,11 +48,11 @@ No paid email service or email notifications are configured.
 
 ## Live deployment verification (separate from resource creation)
 
-The GitHub Actions dispatch now runs `pipeline/verify-site.mjs` after provisioning. This read-only checker confirms:
+The GitHub Actions dispatch now runs `pipeline/launch-site.mjs`, which provisions the website, captures the intended 40-character GitHub commit SHA, and verifies that exact commit on Cloudflare production before reporting a successful launch. This read-only checker confirms:
 
 1. The Pages project is still connected to the expected GitHub source.
 2. Cloudflare reports a successful **canonical production deployment**.
-3. The public `https://esp-{slug}-site.pages.dev/` responds HTTP 200 with HTML markup.
+3. Cloudflare's canonical production deployment identifies the **exact GitHub commit SHA** captured during setup. Older successful deployments do **not** count. The public `https://esp-{slug}-site.pages.dev/` also responds HTTP 200 with HTML markup.
 
 The checker retries a bounded number of times while Cloudflare's build or public availability is pending. It fails the workflow if no live deployment can be confirmed; the created resources are left intact for diagnosis and a safe retry. A newer queued deployment does **not** hide an already live canonical deployment; the result flags that newer pending build.
 
@@ -60,6 +60,7 @@ For a standalone check (without mutating resources):
 
 ```sh
 CLOUDFLARE_API_TOKEN=... node pipeline/verify-site.mjs customer.json
+# This standalone check reports general website reachability; use `launch-site.mjs` for exact revision acceptance.
 ```
 
 **Caveat:** This is an availability check, not a human review of branding/content, a contact-form acceptance test, or proof that the most recent commit has deployed.
@@ -67,3 +68,7 @@ CLOUDFLARE_API_TOKEN=... node pipeline/verify-site.mjs customer.json
 ## OAuth-first customer onboarding
 
 The intended no-technical-steps experience, provider permissions, and the new Cloudflare PKCE / provider identity verification libraries are documented in [ONBOARDING_OAUTH.md](ONBOARDING_OAUTH.md). The OAuth callback service and GitHub App are **not yet deployed**. Never describe the operator-only GitHub Actions workflow as a finished self-serve OAuth onboarding flow.
+
+## Revision-pinned acceptance
+
+`applyWebsite()` now returns `headCommitSha` taken from the authorized GitHub repository's production branch. `launchWebsite()` and the hosted onboarding Worker pass it to `verifyWebsite()` as `expectedCommitSha`. A Pages deployment that is successful but points to an **older commit** remains `pending-expected-commit`, and the UI stays `pending_deployment`. It is never marked `live` until the expected SHA is visible in Cloudflare's canonical production deployment and the public site responds. This also protects manual GitHub Actions retries from accidentally accepting an older deploy.
