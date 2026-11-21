@@ -49,6 +49,7 @@ function requestFactory({githubToken,cloudflareToken,fetchFn=fetch}) {
 export async function applyWebsite(input,{githubToken,cloudflareToken,fetchFn}={}) {
   const plan=planCustomer(input);
   if(plan.forms)throw Error("Form provisioning is not yet automated; no resources were changed");
+  if(input.hostname)throw Error("Custom domain attachment is not yet automated; no resources were changed");
   const api=requestFactory({githubToken,cloudflareToken,fetchFn});
   const name=checkedName("esp-"+plan.customer);
   const pages=checkedName(name+"-site");
