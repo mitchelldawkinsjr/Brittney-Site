@@ -5,7 +5,9 @@ import {readFileSync} from "node:fs";
 import {pathToFileURL} from "node:url";
 import {planCustomer} from "./plan-customer.mjs";
 
-const mark = slug => "Elite Site Pipeline managed site: "+slug;
+const mark = slug => "Launch & Own managed site: "+slug;
+// Preserve safe retries for previously provisioned beta sites with the original ownership marker.
+const legacyMark = slug => "Elite Site Pipeline managed site: "+slug;
 const safeHtml = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const homepage = name => `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -61,7 +63,7 @@ export async function applyWebsite(input,{githubToken,cloudflareToken,fetchFn}={
   const journal=[];
   let repository=await api.github(repoPath,{allow404:true});
   if(repository){
-    if(repository.owner?.login?.toLowerCase()!==owner.toLowerCase()||repository.name!==name||repository.description!==originDescription||repository.private!==true)
+    if(repository.owner?.login?.toLowerCase()!==owner.toLowerCase()||repository.name!==name||![originDescription,legacyMark(plan.customer)].includes(repository.description)||repository.private!==true)
       throw Error("Existing GitHub repository is not an exact matching private pipeline-managed resource; refusing to adopt or overwrite it");
     journal.push({resource:"github-repository",name,action:"reused"});
   }else{
