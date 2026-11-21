@@ -1,6 +1,8 @@
-# Elite Site Pipeline
+# Launch & Own
 
-**Ask → Preview → Approve → Live.**
+**Describe it. Launch it. Own it.**
+
+*Ask → Preview → Approve → Live.*
 
 A customer-owned, conversational website creation and maintenance pipeline. The goal is to help someone with **no coding experience** describe a website, authorize their own accounts, approve a preview, publish using GitHub + Cloudflare, and request future updates in plain English—without hiring a developer for routine changes.
 
@@ -33,7 +35,7 @@ A customer-owned, conversational website creation and maintenance pipeline. The 
 
 ## Repository map
 
-**This repository currently has a legacy GitHub URL: `mitchelldawkinsjr/Brittney-Site`.** It began as a Brittney Michelle website migration and expanded into the Elite Site Pipeline **product development + reference deployment**. The repository URL itself has not been renamed. Do **not** rename or move it without reviewing its active Cloudflare Pages GitHub connection first.
+**This repository currently has a legacy GitHub URL: `mitchelldawkinsjr/Brittney-Site`.** It began as a Brittney Michelle website migration and expanded into the Launch & Own **product development + reference deployment**. The canonical product repository will be `mitchelldawkinsjr/launch-and-own`. The repository URL itself has not been renamed. Do **not** rename or move it without reviewing its active Cloudflare Pages GitHub connection first.
 
 | Location | Responsibility |
 |---|---|
@@ -77,7 +79,7 @@ For history, integrity and legacy setup information see [START-HERE.md](START-HE
 
 ## Roadmap and accountability
 
-1. **Product identity and repository boundaries** — this revision; keep the working customer's deployment connected.
+1. **Launch & Own identity and repository boundaries** — branding applied; preserve the existing customer deployment.
 2. **Hosted OAuth beta readiness** — isolated database, provider app registrations, verified domain, security hardening and live deploy.
 3. **Independent customer test** — authorize different accounts, provision a website, verify the URL and editing loop.
 4. **Template + content generation** — genuine website preview, accessible responsive styles, user-approved images.
@@ -88,4 +90,4 @@ For history, integrity and legacy setup information see [START-HERE.md](START-HE
 
 ---
 
-**Project:** Elite Site Pipeline · **Development reference:** Brittney Michelle · **Principle:** the customer owns the website and its infrastructure.
+**Product:** Launch & Own · **Development reference:** Brittney Michelle · **Principle:** the customer owns the website and its infrastructure.
