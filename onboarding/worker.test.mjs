@@ -182,3 +182,33 @@ test('rate limiter rejects GitHub connection before writing temporary OAuth stat
  const r=await h.request('/connect/github');assert.equal(r.status,400);
  assert.equal(h.sqlite.prepare('SELECT COUNT(*) AS c FROM onboarding_flows').get().c,0);
 });
+
+test('health does not claim readiness if an OAuth secret is missing',async()=>{
+ const h=harness();delete h.env.CF_CLIENT_SECRET;
+ const response=await h.request('/health');
+ assert.deepEqual(await response.json(),{ok:true,configured:false});
+});
+test('browser session cookies use secure host-only flags',async()=>{
+ const h=harness();
+ const response=await h.request('/connect/github');
+ assert.equal(response.status,303);
+ const cookieValue=response.headers.getSetCookie().find(c=>c.startsWith('__Host-esp_login='));
+ assert.match(cookieValue,/Secure/);
+ assert.match(cookieValue,/HttpOnly/);
+ assert.match(cookieValue,/SameSite=Lax/);
+ assert.match(cookieValue,/Path=\//);
+});
+test('customer-controlled site names are escaped on review page',async()=>{
+ const h=harness();globalThis.fetch=h.fetchFn;
+ try{
+  const {sessionCookie}=await bootstrap(h);await connectCloudflare(h,sessionCookie);
+  const csrf=csrfFrom(await (await h.request('/',{cookie:sessionCookie})).text());
+  await h.request('/account',{method:'POST',cookie:sessionCookie,body:form({csrf,accountId})});
+  const response=await h.request('/preview',{method:'POST',cookie:sessionCookie,body:form({csrf,name:'<img src=x onerror=alert(1)>'})});
+  assert.equal(response.status,303);
+  const review=await h.request(response.headers.get('location'),{cookie:sessionCookie});
+  const html=await review.text();
+  assert(!html.includes('<img src=x onerror=alert(1)>'));
+  assert.match(html,/&lt;img src=x onerror=alert\(1\)&gt;/);
+ }finally{globalThis.fetch=originalFetch}
+});
