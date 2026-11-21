@@ -1,7 +1,7 @@
 name: Forms staging checks
 on:
   pull_request:
-    paths: ["forms/**", ".github/workflows/forms-staging.yml"]
+    paths: ["forms/**", "pipeline/**", ".github/workflows/forms-staging.yml"]
   push:
     paths: ["forms/**", ".github/workflows/forms-staging.yml"]
 jobs:
@@ -12,4 +12,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: node --test forms/tests/*.test.mjs
+      - run: node --test forms/tests/*.test.mjs pipeline/*.test.mjs
+      - run: node pipeline/validate-features.mjs
