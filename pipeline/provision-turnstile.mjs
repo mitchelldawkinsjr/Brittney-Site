@@ -19,7 +19,7 @@ const widgets=await api(base+"/challenges/widgets");
 let widget=widgets.find(x=>x.name===env.FORMS_WIDGET_NAME&&x.domains?.includes(hostname));
 let secret;
 if(!widget){
- const created=await api(base+"/challenges/widgets","POST",{name:env.FORMS_WIDGET_NAME||"Elite Site Pipeline — "+hostname,domains:[hostname],mode:"managed"});
+ const created=await api(base+"/challenges/widgets","POST",{name:env.FORMS_WIDGET_NAME||"Launch & Own — "+hostname,domains:[hostname],mode:"managed"});
  widget=created;secret=created.secret;
  console.log("Created Turnstile widget");
 }else if(env.ROTATE_TURNSTILE_SECRET==="true"){

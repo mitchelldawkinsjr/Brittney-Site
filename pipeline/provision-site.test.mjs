@@ -4,8 +4,8 @@ import {applyWebsite,previewWebsite} from "./provision-site.mjs";
 const input={name:"Test Client",accountId:"0123456789abcdef0123456789abcdef",githubOwner:"tester"};
 const repoName="esp-test-client",pagesName=repoName+"-site";
 const EXPECTED_SHA="a".repeat(40);
-function harness({repoExisting=false,projectExisting=false,otherOwner=false,collision=false,failPages=false}={}) {
- const history=[],state={file:repoExisting,repo:repoExisting?{id:321,name:repoName,description:collision?"Unrelated repository":"Elite Site Pipeline managed site: test-client",private:true,default_branch:"main",owner:{login:"tester"}}:null,
+function harness({repoExisting=false,projectExisting=false,otherOwner=false,collision=false,legacyMarker=false,failPages=false}={}) {
+ const history=[],state={file:repoExisting,repo:repoExisting?{id:321,name:repoName,description:collision?"Unrelated repository":legacyMarker?"Elite Site Pipeline managed site: test-client":"Launch & Own managed site: test-client",private:true,default_branch:"main",owner:{login:"tester"}}:null,
  project:projectExisting?{name:pagesName,production_branch:"main",source:{type:"github",config:{owner:"tester",repo_name:repoName,repo_id:"321"}}}:null};
  const json=(value,status=200)=>new Response(JSON.stringify(value),{status,headers:{"content-type":"application/json"}});
  const fetchFn=async(url,opts={})=>{
@@ -58,6 +58,12 @@ test("retry reuses managed resources and never overwrites existing content",asyn
  const r=await applyWebsite(input,{...tokens,fetchFn:h.fetchFn});
  assert.deepEqual(r.journal.map(e=>e.action),["reused","preserved","reused"]);
  assert(h.history.every(e=>e.method==="GET"));
+});
+test("legacy beta customer owned repository remains safely resumable after brand change",async()=>{
+ const h=harness({repoExisting:true,legacyMarker:true,projectExisting:true});
+ const result=await applyWebsite(input,{...tokens,fetchFn:h.fetchFn});
+ assert.deepEqual(result.journal.map(e=>e.action),["reused","preserved","reused"]);
+ assert(h.history.every(entry=>entry.method==="GET"));
 });
 test("partially completed repo resumes without duplicating resources",async()=>{
  const h=harness({repoExisting:true});
