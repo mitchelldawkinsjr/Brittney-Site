@@ -63,3 +63,7 @@ CLOUDFLARE_API_TOKEN=... node pipeline/verify-site.mjs customer.json
 ```
 
 **Caveat:** This is an availability check, not a human review of branding/content, a contact-form acceptance test, or proof that the most recent commit has deployed.
+
+## OAuth-first customer onboarding
+
+The intended no-technical-steps experience, provider permissions, and the new Cloudflare PKCE / provider identity verification libraries are documented in [ONBOARDING_OAUTH.md](ONBOARDING_OAUTH.md). The OAuth callback service and GitHub App are **not yet deployed**. Never describe the operator-only GitHub Actions workflow as a finished self-serve OAuth onboarding flow.
