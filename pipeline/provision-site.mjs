@@ -100,7 +100,7 @@ export async function applyWebsite(input,{githubToken,cloudflareToken,fetchFn}={
 }
 export function previewWebsite(input) {
   const plan=planCustomer(input);
-  return {...plan, executable:!plan.forms, note:plan.forms?"Forms provisioning is gated until Worker/Access setup and live acceptance are automated":"Use --apply with authorized account tokens to create/reuse a private repository and connected Pages project"};
+  return {...plan, executable:!plan.forms&&!input.hostname, note:plan.forms?"Forms provisioning is gated until Worker/Access setup and live acceptance are automated":input.hostname?"Custom-domain attachment is not yet automated":"Use --apply with authorized account tokens to create/reuse a private repository and connected Pages project"};
 }
 async function main(args=process.argv.slice(2)) {
   const apply=args.includes("--apply");
