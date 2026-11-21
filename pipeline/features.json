@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "site": {
+    "provider": "cloudflare-pages",
+    "project": "elite-pipeline-brittney-michelle-test"
+  },
+  "features": {
+    "contactForm": {
+      "enabled": false,
+      "provider": "cloudflare-worker-d1-turnstile",
+      "workerConfig": "forms/wrangler.jsonc"
+    },
+    "emailNotifications": {
+      "enabled": false,
+      "requires": "contactForm",
+      "mode": "disabled"
+    }
+  }
+}
