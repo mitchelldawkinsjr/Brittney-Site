@@ -19,7 +19,7 @@ function secureRedirect(uri) {
   return value;
 }
 function secureCompare(a,b) {
-  if(typeof a!=="string"||typeof b!=="string")return false;
+  if(typeof a!=="string"||typeof b!=="string"||!(/^[A-Za-z0-9_-]{43}$/.test(a))||!(/^[A-Za-z0-9_-]{43}$/.test(b)))return false;
   const left=Buffer.from(a),right=Buffer.from(b);
   return left.length===right.length && timingSafeEqual(left,right);
 }
