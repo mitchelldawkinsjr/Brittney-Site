@@ -36,7 +36,7 @@ Create **separate** GitHub App and public Cloudflare OAuth client registrations.
 
 Follow official [Cloudflare OAuth setup](https://developers.cloudflare.com/fundamentals/oauth/create-an-oauth-client/) and [GitHub App authorization](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app). The GitHub App needs GitHub's dedicated **Repository creation** permission and **Contents: write** for newly created personal repositories, subject to the user's actual privileges. Cloudflare's live OAuth scope catalog currently includes `page.read` and `page.write` for Pages access, and `memberships.read` for membership inspection. Confirm the exact account-listing permission and actual endpoint authorization during live integration; select scopes from the official [OAuth scopes endpoint](https://developers.cloudflare.com/api/resources/iam/subresources/oauth_scopes/methods/list/) rather than inventing identifiers. Do not ask customers to paste PATs or API tokens.
 
-Create a dedicated onboarding D1 database, update `onboarding/wrangler.jsonc`'s placeholder database ID (do not use the Brittney form D1), then apply `onboarding/migrations/0001_initial.sql` to that database. In the Worker environment configure:
+**Beta environment D1 now exists.** The platform-owned, isolated database `elite-site-onboarding-beta` (`c21295f8-2593-4317-abad-1d1221c0656b`) was created in the configured Cloudflare account and its initial migration was applied. The repository's `onboarding/wrangler.jsonc` now points to that dedicated database. The Cloudflare D1 schema was verified to contain all three onboarding tables and three required indexes. **Do not use the Brittney contact-form database.** For another operator/account, create a separate database, update the binding with its ID, and apply the migration in that account. In the Worker environment configure:
 
 | Binding | Purpose |
 |---|---|
@@ -50,10 +50,13 @@ Create a dedicated onboarding D1 database, update `onboarding/wrangler.jsonc`'s 
 
 Configure the non-secret values as environment variables and all sensitive values via the Cloudflare Worker secret store, **never GitHub or source files**. Rotate compromised credentials and disconnect active sessions; key rotation invalidates currently encrypted credentials.
 
-The project already uses Wrangler under `forms/`; deploy this separate Worker with the `onboarding/wrangler.jsonc` configuration only after the domain, OAuth client registrations, D1 migrations, and secrets are ready. Avoid changing any `forms/` bindings or Brittney Pages settings.
+The project already uses Wrangler under `forms/`; deploy this separate Worker with the `onboarding/wrangler.jsonc` configuration only after the domain, OAuth client registrations and secrets are ready. The isolated beta D1 migration is already applied, but production deployment is deliberately still blocked. Avoid changing any `forms/` bindings or Brittney Pages settings.
 
 **Verification:**
 ```sh
+node onboarding/validate-config.mjs
+# Optional: requires scoped read-only D1 API authorization
+CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=... node onboarding/validate-config.mjs --remote
 node --test onboarding/*.test.mjs
 node --test forms/tests/*.test.mjs pipeline/*.test.mjs onboarding/*.test.mjs
 ```

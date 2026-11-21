@@ -17,7 +17,7 @@
     {
       "binding": "DB",
       "database_name": "elite-site-onboarding-beta",
-      "database_id": "REPLACE_WITH_DEDICATED_ONBOARDING_DATABASE_UUID",
+      "database_id": "c21295f8-2593-4317-abad-1d1221c0656b",
       "migrations_dir": "migrations"
     }
   ]
