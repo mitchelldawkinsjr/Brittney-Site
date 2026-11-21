@@ -1,0 +1,42 @@
+name: Build Launch & Own portable source
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/export-launch-and-own*"
+      - "pipeline/**"
+      - "onboarding/**"
+      - ".github/workflows/product-export.yml"
+  pull_request:
+    paths:
+      - "scripts/export-launch-and-own*"
+      - "pipeline/**"
+      - "onboarding/**"
+      - ".github/workflows/product-export.yml"
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test product-only export and tenant safety
+        run: node --test scripts/export-launch-and-own.test.mjs
+      - name: Build independent product repository source
+        run: |
+          node scripts/export-launch-and-own.mjs "$RUNNER_TEMP/launch-and-own"
+          cd "$RUNNER_TEMP/launch-and-own"
+          npm test
+      - name: Package Launch & Own source
+        run: |
+          cd "$RUNNER_TEMP"
+          zip -qr "$GITHUB_WORKSPACE/launch-and-own-source.zip" launch-and-own
+      - uses: actions/upload-artifact@v4
+        with:
+          name: launch-and-own-product-source
+          path: launch-and-own-source.zip
+          if-no-files-found: error
+          retention-days: 30
