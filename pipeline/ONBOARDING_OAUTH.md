@@ -1,11 +1,11 @@
-# Customer onboarding: connect accounts, approve, launch
+# Launch & Own customer onboarding: connect accounts, approve, launch
 
 This describes the **target customer experience** and the currently implemented source code. A standalone onboarding Worker now exists under `onboarding/` with OAuth callback routes, session encryption, account selection and explicit launch approval; it is **not publicly deployed or connected to registered OAuth applications**. The product is not publicly available or a published ChatGPT plugin. The operator-only `pipeline/provision-site.mjs` CLI still uses securely supplied provider credentials.
 
 ## Intended experience (no terminal or API keys for customers)
 
 1. Customer describes a website in a conversation. The assistant gathers business name, pages, copy, assets, preferred look, and whether forms are desired.
-2. **Connect GitHub**: customer installs/authorizes the Elite Site Pipeline GitHub App and approves the minimum permissions needed for repository creation and updates. A backend receives a GitHub App **user-to-server** access token, not a pasted personal access token. Confirm the actual GitHub user with `GET https://api.github.com/user`.
+2. **Connect GitHub**: customer installs/authorizes the Launch & Own GitHub App and approves the minimum permissions needed for repository creation and updates. A backend receives a GitHub App **user-to-server** access token, not a pasted personal access token. Confirm the actual GitHub user with `GET https://api.github.com/user`.
 3. **Connect Cloudflare**: redirect to the public Cloudflare OAuth client's consent page. Customer selects an authorized account. Verify access to that account via Cloudflare's `GET /accounts/:accountId` using the OAuth access token.
 4. **Connect GitHub to Cloudflare Pages**: Cloudflare's **Workers & Pages GitHub App** is a separate authorization. If not already installed for the customer, prompt them to authorize it. For installations restricted to specific repositories, they may need to add the **new** repository after creation. Do not silently broaden repository access. Cloudflare's own app authorization cannot be replaced with our GitHub App.
 5. Customer previews generated pages and approves a concise description of new resources, data storage and domain. This explicit launch approval is saved server-side against the authenticated session and exact plan. **Connecting accounts does not automatically mean permission to create resources.**
