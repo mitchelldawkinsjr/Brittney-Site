@@ -1,0 +1,28 @@
+name: Provision optional contact-form security
+on:
+  workflow_dispatch:
+    inputs:
+      rotate_secret:
+        description: "Rotate existing Turnstile secret (invalidates old key)"
+        required: true
+        default: false
+        type: boolean
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Provision Turnstile and bind secret
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          FORMS_WORKER_NAME: esp-brittney-forms-staging
+          FORMS_HOSTNAME: elite-pipeline-brittney-michelle-test.pages.dev
+          FORMS_WIDGET_NAME: elite-pipeline-brittney-michelle-test.pages.dev (Spin)
+          ROTATE_TURNSTILE_SECRET: ${{ inputs.rotate_secret }}
+        run: node pipeline/provision-turnstile.mjs
