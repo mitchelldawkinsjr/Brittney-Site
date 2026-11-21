@@ -2,13 +2,13 @@
 
 ## Decision
 
-**Elite Site Pipeline is the product. Brittney Michelle is a verified customer reference site, not the product name.**
+**Launch & Own** (*Describe it. Launch it. Own it.*) is the product. Brittney Michelle is a verified customer reference site, not the product name.**
 
 The current GitHub repository `mitchelldawkinsjr/Brittney-Site` was created for that customer's website and later accumulated the reusable pipeline and hosted onboarding application. It should not permanently carry a customer name as the product's canonical source repository.
 
 ## Recommended target layout
 
-- **Product repository:** `mitchelldawkinsjr/elite-site-pipeline` — version-controlled customer-agnostic `pipeline/`, `onboarding/`, documentation, CI, templates, future plugin source, and a non-customer-specific demonstration.
+- **Product repository:** `mitchelldawkinsjr/launch-and-own` — version-controlled customer-agnostic `pipeline/`, `onboarding/`, documentation, CI, templates, future plugin source, and a non-customer-specific demonstration.
 - **Reference customer repository:** `mitchelldawkinsjr/Brittney-Site` — `public/`, customer-specific `forms/`, website QA and deployment settings. The reference can consume tagged product releases or curated customer-specific setup outputs when appropriate.
 - **Other customers:** their own repository and Cloudflare account, provisioned by the pipeline. No shared customer secrets, databases, contact data or live DNS.
 
@@ -23,7 +23,7 @@ The available GitHub connection can update files and open PRs, but currently doe
 ## Non-disruptive extraction sequence
 
 1. Keep the current repo and Brittney deployment unchanged while product code matures.
-2. Create **new** `elite-site-pipeline` repository under the correct owner through an authorized GitHub interface, with narrowly scoped permissions and an approved visibility setting. Do not clone or move customers' form submissions or secret bindings.
+2. Create **new** `launch-and-own` repository under the correct owner through an authorized GitHub interface, with narrowly scoped permissions and an approved visibility setting. Do not clone or move customers' form submissions or secret bindings.
 3. Copy and test *only* product modules (`pipeline/`, `onboarding/`, supporting CI/docs and generic tests). Replace any Brittney-specific values and reference URLs in product defaults with generated config. Configure product-owned but **isolated** onboarding D1/OAuth/Worker resources.
 4. Create a clean product README, security guidance, license chosen by the owner, and product-specific actions, release process and issues.
 5. Run the same tests in the new repo. Obtain a second customer OAuth/login + provisioning/verification acceptance test before calling public beta live.
