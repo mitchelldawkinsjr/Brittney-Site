@@ -13,5 +13,5 @@ export function validateFeatures(config){
 if(process.argv[1]&&import.meta.url===new URL("file://"+process.argv[1]).href){
  const path=process.argv[2]||"pipeline/features.json";
  const errors=validateFeatures(JSON.parse(readFileSync(path,"utf8")));
- if(errors.length){console.error(errors.join("\\n"));process.exitCode=1}else console.log("Feature configuration valid");
+ if(errors.length){console.error(errors.join("\n"));process.exitCode=1}else console.log("Feature configuration valid");
 }
