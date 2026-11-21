@@ -1,0 +1,4 @@
+# Official Cloudflare MCP endpoint. Codex loads project config for trusted repositories.
+# You still must authorize your own Cloudflare account with OAuth.
+[mcp_servers.cloudflare]
+url = "https://mcp.cloudflare.com/mcp"
