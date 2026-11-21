@@ -1,0 +1,30 @@
+name: Staging deployment smoke checks
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "public/**"
+      - "forms/**"
+      - "pipeline/**"
+      - ".github/workflows/smoke-staging.yml"
+  schedule:
+    - cron: "17 10 * * *"
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Wait for deployment and verify staging
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            if node pipeline/smoke-staging.mjs; then exit 0; fi
+            if [ "$attempt" -eq 6 ]; then exit 1; fi
+            sleep 30
+          done
