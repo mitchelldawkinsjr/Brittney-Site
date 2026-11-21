@@ -1,4 +1,6 @@
-# Launch & Own
+# Launch & Own — Brittney reference repository
+
+> **Canonical product repository:** [mitchelldawkinsjr/launch-and-own](https://github.com/mitchelldawkinsjr/launch-and-own). This legacy repository remains the verified Brittney Michelle customer reference and deployment source. Product development now takes place in the dedicated repository; shared modules here are historical copies.
 
 **Describe it. Launch it. Own it.**
 
@@ -35,7 +37,7 @@ A customer-owned, conversational website creation and maintenance pipeline. The 
 
 ## Repository map
 
-**This repository currently has a legacy GitHub URL: `mitchelldawkinsjr/Brittney-Site`.** It began as a Brittney Michelle website migration and expanded into the Launch & Own **product development + reference deployment**. The canonical product repository will be `mitchelldawkinsjr/launch-and-own`. The repository URL itself has not been renamed. Do **not** rename or move it without reviewing its active Cloudflare Pages GitHub connection first.
+**This repository retains its original GitHub URL: `mitchelldawkinsjr/Brittney-Site`.** It began as a Brittney Michelle website migration and expanded into the Launch & Own **product development + reference deployment**. The canonical product repository is now [`mitchelldawkinsjr/launch-and-own`](https://github.com/mitchelldawkinsjr/launch-and-own). The repository URL itself has not been renamed. Do **not** rename or move it without reviewing its active Cloudflare Pages GitHub connection first.
 
 | Location | Responsibility |
 |---|---|
@@ -79,14 +81,14 @@ For history, integrity and legacy setup information see [START-HERE.md](START-HE
 
 ## Roadmap and accountability
 
-1. **Launch & Own identity and repository boundaries** — branding applied; preserve the existing customer deployment.
+1. **Launch & Own identity and repository boundaries** — complete: standalone product repository created and imported; existing customer deployment preserved.
 2. **Hosted OAuth beta readiness** — isolated database, provider app registrations, verified domain, security hardening and live deploy.
 3. **Independent customer test** — authorize different accounts, provision a website, verify the URL and editing loop.
 4. **Template + content generation** — genuine website preview, accessible responsive styles, user-approved images.
 5. **Opt-in forms** — customer-isolated D1, Turnstile and protected inbox; end-to-end verification.
 6. **Portable beta and ChatGPT integration** — carefully scoped sharing and install instructions; public distribution only after supported approval.
 
-**Current launch checklist:** [Issue #21](https://github.com/mitchelldawkinsjr/Brittney-Site/issues/21). Security and account ownership requirements take priority over claiming the project is free, fully automated or generally available.
+**Historical beta launch checklist:** [Issue #21](https://github.com/mitchelldawkinsjr/Brittney-Site/issues/21); future product work is tracked in the [Launch & Own repository](https://github.com/mitchelldawkinsjr/launch-and-own). Security and account ownership requirements take priority over claiming the project is free, fully automated or generally available.
 
 ---
 
