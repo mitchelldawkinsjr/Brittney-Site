@@ -1,6 +1,8 @@
-# Start here — Elite Site Pipeline
+# Start here — Launch & Own
 
-This repository is currently a **development monorepo for Elite Site Pipeline**, with the **Brittney Michelle staging website** serving as the verified real-world reference. It is not a published general-purpose onboarding service yet.
+**Describe it. Launch it. Own it.**
+
+This repository is currently a **development monorepo for Launch & Own**, with the **Brittney Michelle staging website** serving as the verified real-world reference. It is not a published general-purpose onboarding service yet.
 
 ## What are you doing?
 
