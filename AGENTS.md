@@ -1,8 +1,10 @@
-# Launch & Own — repository instructions
+# Brittney reference site — repository instructions
 
-**Primary project:** **Launch & Own** — a customer-owned, conversational, low-to-no-cost website creation and maintenance pipeline using GitHub, Cloudflare and ChatGPT. **Current repository slug** `Brittney-Site` is a legacy name because this repository began as a single customer website. It now contains reusable pipeline code, a standalone unhosted onboarding Worker, and the live **Brittney staging reference**.
+**Canonical product source:** [Launch & Own](https://github.com/mitchelldawkinsjr/launch-and-own) now lives in its dedicated repository. This repository is the **Brittney Michelle reference customer** and continues to deploy from `main/public`. Do not develop product features here; use the canonical repository for reusable code changes.
 
-Use the product name **Launch & Own**, tagline **Describe it. Launch it. Own it.**, and proposed canonical repository slug `launch-and-own`. Read [README.md](README.md) for product goals, boundaries and status, and [docs/REPOSITORY-STRATEGY.md](docs/REPOSITORY-STRATEGY.md) before reorganizing paths or renaming the GitHub repository.
+**Historical context:** Launch & Own — a customer-owned, conversational, low-to-no-cost website creation and maintenance pipeline using GitHub, Cloudflare and ChatGPT. **Current repository slug** `Brittney-Site` is a legacy name because this repository began as a single customer website. It now contains reusable pipeline code, a standalone unhosted onboarding Worker, and the live **Brittney staging reference**.
+
+Use the product name **Launch & Own** and tagline **Describe it. Launch it. Own it.** The canonical repository is [mitchelldawkinsjr/launch-and-own](https://github.com/mitchelldawkinsjr/launch-and-own). Read [README.md](README.md) for product goals, boundaries and status, and [docs/REPOSITORY-STRATEGY.md](docs/REPOSITORY-STRATEGY.md) before reorganizing paths or renaming the GitHub repository.
 
 ## Code ownership and hard boundaries
 
