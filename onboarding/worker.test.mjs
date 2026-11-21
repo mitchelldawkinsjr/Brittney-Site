@@ -255,6 +255,6 @@ test('product onboarding shows Launch & Own identity and customer ownership tagl
  const h=harness();
  const result=await h.request('/');
  const html=await result.text();
- assert.match(html,/Launch &amp; Own/);
+ assert.match(html,/Launch & Own/);
  assert.match(html,/Describe it\. Launch it\. Own it\./);
 });
