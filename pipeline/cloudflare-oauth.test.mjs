@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {createHash} from "node:crypto";
 import {beginCloudflareOAuth,completeCloudflareOAuth,verifyCloudflareAccount,CLOUDFLARE_AUTH_URL,CLOUDFLARE_TOKEN_URL} from "./cloudflare-oauth.mjs";
 const client={clientId:"client-public-id",redirectUri:"https://onboarding.example.com/oauth/cloudflare/callback",scopes:["workers-platform.read","workers-platform.write"]};
-const random=()=>Buffer.alloc(48,0x13);
+const random=(length)=>Buffer.alloc(length,0x13);
 test("OAuth URL contains correct Cloudflare endpoint, state and S256 challenge but never verifier",()=>{
  const {authorizationUrl,session}=beginCloudflareOAuth(client,random);
  const url=new URL(authorizationUrl);
