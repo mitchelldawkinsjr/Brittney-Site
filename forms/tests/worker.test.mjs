@@ -8,3 +8,6 @@ test("rejects missing security binding",async()=>{const r=await call("/api/forms
 test("rejects other origins",async()=>{const r=await call("/api/forms/contact",{method:"POST",headers:{origin:"https://evil.example"}});assert.equal(r.status,403)});
 test("rejects invalid fields",async()=>{const r=await call("/api/forms/contact",{method:"POST",headers:{origin,"content-type":"application/json"},body:JSON.stringify({name:"",email:"no",message:""})});assert.equal(r.status,400)});
 test("enforces rate limits before captcha",async()=>{const e={...env,FORM_RATE_LIMITER:{limit:async()=>({success:false})}};const r=await call("/api/forms/contact",{method:"POST",headers:{origin,"content-type":"application/json"},body:JSON.stringify({name:"Test",email:"test@example.com",message:"Hello"})},e);assert.equal(r.status,429)});
+
+test("approved-origin CORS preflight succeeds",async()=>{const r=await call("/api/forms/contact",{method:"OPTIONS",headers:{origin,"access-control-request-method":"POST"}});assert.equal(r.status,204);assert.equal(r.headers.get("access-control-allow-origin"),origin)});
+test("foreign-origin preflight is rejected",async()=>{const r=await call("/api/forms/contact",{method:"OPTIONS",headers:{origin:"https://evil.example"}});assert.equal(r.status,403)});
