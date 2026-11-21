@@ -45,3 +45,21 @@ A retry preserves user-edited site files and reuses matching resources. A failed
 - Automated image design, rollback, ongoing content generation, and full hands-off onboarding are future milestones.
 
 No paid email service or email notifications are configured.
+
+## Live deployment verification (separate from resource creation)
+
+The GitHub Actions dispatch now runs `pipeline/verify-site.mjs` after provisioning. This read-only checker confirms:
+
+1. The Pages project is still connected to the expected GitHub source.
+2. Cloudflare reports a successful **canonical production deployment**.
+3. The public `https://esp-{slug}-site.pages.dev/` responds HTTP 200 with HTML markup.
+
+The checker retries a bounded number of times while Cloudflare's build or public availability is pending. It fails the workflow if no live deployment can be confirmed; the created resources are left intact for diagnosis and a safe retry. A newer queued deployment does **not** hide an already live canonical deployment; the result flags that newer pending build.
+
+For a standalone check (without mutating resources):
+
+```sh
+CLOUDFLARE_API_TOKEN=... node pipeline/verify-site.mjs customer.json
+```
+
+**Caveat:** This is an availability check, not a human review of branding/content, a contact-form acceptance test, or proof that the most recent commit has deployed.
