@@ -248,7 +248,11 @@ async function verify(request,env,current){
   if(item.cloudflare_account_id!==current.cloudflare_account_id)throw Error('Account changed since approval');
   if(!current.cloudflare_token_ct)throw Error('Reconnect your Cloudflare account');
   const token=await unseal(env.TOKEN_ENCRYPTION_KEY,current.cloudflare_token_ct,'cloudflare:'+current.hash);
-  const result=await verifyWebsite({name:item.customer_name,accountId:item.cloudflare_account_id,githubOwner:item.github_login,forms:false},{cloudflareToken:token});
+  const provisioned=item.provision_result?JSON.parse(item.provision_result):null;
+  const expectedCommitSha=provisioned?.headCommitSha;
+  if(typeof expectedCommitSha!=='string'||!/^[a-f0-9]{40}$/i.test(expectedCommitSha))
+    throw Error('The approved source revision is missing. Deployment cannot be confirmed safely.');
+  const result=await verifyWebsite({name:item.customer_name,accountId:item.cloudflare_account_id,githubOwner:item.github_login,forms:false},{cloudflareToken:token,expectedCommitSha});
   if(result.status==='live')await env.DB.prepare("UPDATE onboarding_launches SET status='live',updated_at=? WHERE id=? AND session_hash=? AND status IN ('pending_deployment','live')").bind(now(),id,current.hash).run();
   return redirect('/review?id='+encodeURIComponent(id));
 }
