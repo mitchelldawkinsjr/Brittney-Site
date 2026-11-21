@@ -1,4 +1,4 @@
-# Customer website provisioning — milestone 2
+# Launch & Own customer website provisioning — milestone 2
 
 The verified Brittney site is the reference implementation. This milestone adds a **website-only** executor for a new customer's **personal GitHub account** and a Cloudflare Pages project already authorized to access the account's GitHub repositories.
 
