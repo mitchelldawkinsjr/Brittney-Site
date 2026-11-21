@@ -3,10 +3,11 @@ import assert from "node:assert/strict";
 import {verifyWebsite,waitForWebsite} from "./verify-site.mjs";
 const input={name:"Test Client",accountId:"0123456789abcdef0123456789abcdef",githubOwner:"tester"};
 const projectName="esp-test-client-site",site="https://"+projectName+".pages.dev";
+const EXPECTED_SHA="a".repeat(40),NEXT_SHA="b".repeat(40);
 function mock({canonical=true,latestQueued=false,htmlStatus=200,htmlType="text/html",html="<html><body>Test Client</body></html>",otherSource=false}={}) {
  const calls=[];
  const project={name:projectName,source:{type:"github",config:{owner:"tester",repo_name:otherSource?"another-repo":"esp-test-client"}},
-  canonical_deployment:canonical?{id:"deploy-success",latest_stage:{name:"deploy",status:"success"}}:null,
+  canonical_deployment:canonical?{id:"deploy-success",latest_stage:{name:"deploy",status:"success"},deployment_trigger:{metadata:{commit_hash:EXPECTED_SHA}}}:null,
   latest_deployment:latestQueued?{id:"newer",latest_stage:{name:"queued",status:"idle"}}:{id:"deploy-success",latest_stage:{name:"deploy",status:"success"}}};
  const fetchFn=async(url,opts={})=>{
   calls.push(url);
@@ -70,4 +71,29 @@ test("invalid poll limits fail immediately",async()=>{
  const h=mock();
  await assert.rejects(waitForWebsite(input,{cloudflareToken:"token",fetchFn:h.fetchFn},0,1000),/attempts must/);
  assert.equal(h.calls.length,0);
+});
+
+test("exact newly approved commit is required before reporting a new customer website live",async()=>{
+ const h=mock();
+ const result=await verifyWebsite(input,{cloudflareToken:"token",expectedCommitSha:EXPECTED_SHA,fetchFn:h.fetchFn});
+ assert.equal(result.status,"live");
+ assert.equal(h.calls.length,2);
+});
+test("older successful production deploy cannot satisfy a newer approved revision",async()=>{
+ const h=mock({latestQueued:true});
+ const result=await verifyWebsite(input,{cloudflareToken:"token",expectedCommitSha:NEXT_SHA,fetchFn:h.fetchFn});
+ assert.equal(result.status,"pending-expected-commit");
+ assert.equal(result.expectedCommit,NEXT_SHA);
+ assert.equal(result.deployedCommit,EXPECTED_SHA);
+ assert.equal(h.calls.length,1,"Do not check stale homepage while awaiting expected commit");
+});
+test("invalid expected commit fails before any Cloudflare or public requests",async()=>{
+ const h=mock();
+ await assert.rejects(verifyWebsite(input,{cloudflareToken:"token",expectedCommitSha:"not-a-sha",fetchFn:h.fetchFn}),/full 40-character/);
+ assert.equal(h.calls.length,0);
+});
+test("strict polling rejects when older commit remains live",async()=>{
+ const h=mock({latestQueued:true});
+ await assert.rejects(waitForWebsite(input,{cloudflareToken:"token",expectedCommitSha:NEXT_SHA,fetchFn:h.fetchFn},1,1000),/not verified/);
+ assert.equal(h.calls.length,1);
 });
