@@ -14,4 +14,5 @@ jobs:
           node-version: "22"
       - run: node --test forms/tests/*.test.mjs pipeline/*.test.mjs onboarding/*.test.mjs
       - run: node --check onboarding/worker.mjs
+      - run: node onboarding/validate-config.mjs
       - run: node pipeline/validate-features.mjs
