@@ -28,3 +28,12 @@ test("valid token for wrong hostname cannot store or email",async()=>{
  globalThis.fetch=async()=>new Response(JSON.stringify({success:true,action:"contact",hostname:"attacker.example"}),{status:200});
  try{const e={...env,DB:{prepare:()=>{writes++;throw Error("should not write")}}};const r=await call("/api/forms/contact",{method:"POST",headers:{origin,"content-type":"application/json"},body:JSON.stringify({name:"Test User",email:"test@example.com",message:"Test inquiry",turnstileToken:"test-token"})},e);assert.equal(r.status,400);assert.equal(writes,0)}finally{globalThis.fetch=originalFetch}
 });
+
+test("opted-in owner email path invokes configured binding",async()=>{
+ const originalFetch=globalThis.fetch;const sent=[];
+ globalThis.fetch=async()=>new Response(JSON.stringify({success:true,action:"contact",hostname:"elite-pipeline-brittney-michelle-test.pages.dev"}),{status:200});
+ try{const e={...env,EMAIL_MODE:"owner_verified",OWNER_EMAIL:"owner@example.com",EMAIL_FROM:"noreply@example.com",EMAIL:{send:async message=>sent.push(message)},DB:{prepare:()=>({bind:()=>({run:async()=>({success:true})})})}};
+ const r=await call("/api/forms/contact",{method:"POST",headers:{origin,"content-type":"application/json"},body:JSON.stringify({name:"Test User",email:"test@example.com",message:"Test inquiry",turnstileToken:"test-token"})},e);
+ assert.equal(r.status,201);assert.equal(sent.length,1);assert.equal(sent[0].to,"owner@example.com");
+ }finally{globalThis.fetch=originalFetch}
+});
