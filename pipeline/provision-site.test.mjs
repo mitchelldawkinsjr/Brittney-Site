@@ -92,3 +92,10 @@ test("cloudflare error leaves created repo intact for safe retry, does not delet
 test("apply requires explicitly supplied provider tokens",async()=>{
  await assert.rejects(applyWebsite(input,{fetchFn:()=>{throw Error("network should not be called")}}),/GITHUB_TOKEN/);
 });
+
+test("custom host option refuses to touch resources until domain setup is implemented",async()=>{
+ const h=harness();
+ assert.equal(previewWebsite({...input,hostname:"example.com"}).executable,false);
+ await assert.rejects(applyWebsite({...input,hostname:"example.com"},{...tokens,fetchFn:h.fetchFn}),/Custom domain/);
+ assert.equal(h.history.length,0);
+});
