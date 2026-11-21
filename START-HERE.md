@@ -1,16 +1,16 @@
-# Start here — Launch & Own
+# Start here — Brittney reference and Launch & Own
 
 **Describe it. Launch it. Own it.**
 
-This repository is currently a **development monorepo for Launch & Own**, with the **Brittney Michelle staging website** serving as the verified real-world reference. It is not a published general-purpose onboarding service yet.
+The reusable [Launch & Own product](https://github.com/mitchelldawkinsjr/launch-and-own) now has its own repository. This repository remains the historical product prototype and **Brittney customer reference**, with the **Brittney Michelle staging website** serving as the verified real-world reference. It is not a published general-purpose onboarding service yet.
 
 ## What are you doing?
 
 | Goal | Start here |
 |---|---|
 | Understand the product and current maturity | [README](README.md) |
-| Develop the reusable GitHub + Cloudflare provisioner | [Customer provisioning](pipeline/CUSTOMER_PROVISIONING.md) |
-| Review the nontechnical OAuth onboarding experience | [Hosted onboarding](onboarding/README.md) |
+| Develop the reusable GitHub + Cloudflare provisioner | [Canonical Launch & Own repository](https://github.com/mitchelldawkinsjr/launch-and-own) |
+| Review OAuth onboarding | [Canonical hosted onboarding source](https://github.com/mitchelldawkinsjr/launch-and-own/tree/main/onboarding) |
 | Learn where the platform should live long-term | [Repository strategy](docs/REPOSITORY-STRATEGY.md) |
 | Continue the verified Brittney staging site | [Reference deployment](DEPLOYMENT-PIPELINE.md) |
 | Complete the first independently onboarded customer | [Issue #21](https://github.com/mitchelldawkinsjr/Brittney-Site/issues/21) |
@@ -36,4 +36,4 @@ node --test tests/*.test.mjs forms/tests/*.test.mjs pipeline/*.test.mjs onboardi
 node pipeline/validate-features.mjs
 ```
 
-**Project principle:** customer-owned infrastructure and repeatable, conversational website updates. **Current work:** isolate product code into a product-specific repository and get hosted OAuth onboarding to its first verified customer test.
+**Project principle:** customer-owned infrastructure and repeatable, conversational website updates. **Current work:** product code has been separated into its own repository; hosted OAuth onboarding still needs live authorization and an independent customer acceptance test.
