@@ -1,0 +1,46 @@
+name: Provision customer website
+on:
+  workflow_dispatch:
+    inputs:
+      customer_name:
+        description: "Customer/site name (website only; no forms)"
+        type: string
+        required: true
+      github_owner:
+        description: "Authorized personal GitHub username"
+        type: string
+        required: true
+      cloudflare_account_id:
+        description: "Customer Cloudflare account ID (32 hex characters)"
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: provision-customer-${{ inputs.github_owner }}-${{ inputs.customer_name }}
+  cancel-in-progress: false
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Generate non-secret customer configuration
+        env:
+          CUSTOMER_NAME: ${{ inputs.customer_name }}
+          GITHUB_OWNER: ${{ inputs.github_owner }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
+        run: |
+          node --input-type=module -e 'import {writeFileSync} from "node:fs";writeFileSync("/tmp/esp-customer.json",JSON.stringify({name:process.env.CUSTOMER_NAME,accountId:process.env.CLOUDFLARE_ACCOUNT_ID,githubOwner:process.env.GITHUB_OWNER,forms:false}))'
+          node pipeline/provision-site.mjs /tmp/esp-customer.json
+      - name: Apply provisioning (explicit dispatch)
+        env:
+          GITHUB_TOKEN: ${{ secrets.SITE_PIPELINE_GH_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [[ -z "$GITHUB_TOKEN" || -z "$CLOUDFLARE_API_TOKEN" ]]; then
+            echo "::error::Configure SITE_PIPELINE_GH_TOKEN and CLOUDFLARE_API_TOKEN repository secrets"; exit 1
+          fi
+          node pipeline/provision-site.mjs /tmp/esp-customer.json --apply
