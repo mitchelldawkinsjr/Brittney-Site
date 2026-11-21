@@ -21,6 +21,16 @@ This is the **target customer experience**, not a statement that a hosted OAuth 
 - `verifyCloudflareAccount({accessToken,accountId})`: validates that the token can read the selected account and that its ID matches.
 - `verifyProviderConnections(customerConfig,{githubAccessToken,cloudflareAccessToken})`: separately verifies the real GitHub user and Cloudflare account, without provisioning resources. Its response explicitly reports that **Cloudflare's GitHub integration is not yet verified**.
 
+## GitHub App OAuth primitives — implemented, not hosted
+
+`pipeline/github-app-oauth.mjs` exports:
+
+- `beginGitHubAppOAuth({clientId,redirectUri,offlineAccess=true})` builds a GitHub App authorization URL using state and PKCE S256. `offline_access` requests expiring user access and refresh tokens without requesting any conventional OAuth repository scopes; GitHub App permissions are configured in the GitHub App registration.
+- `completeGitHubAppOAuth({clientId,clientSecret,redirectUri,code,receivedState,expectedState,codeVerifier})` rejects missing or mismatched state and exchanges the code through `https://github.com/login/oauth/access_token`. The confidential client secret and returned user/refresh tokens **must remain in the backend**.
+- These functions do not install the GitHub App, create a user-facing callback route, persist or rotate tokens, or grant Cloudflare's GitHub integration access. Those steps remain separate.
+
+See [Generating a user access token for a GitHub App](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app). The authenticated user-to-server access token must have the GitHub App's **repository creation** permission and contents permissions for the initial repo bootstrap. An installation token alone is not interchangeable with the user token used by the current `POST /user/repos` executor.
+
 The hosting application must still implement:
 - Cloudflare OAuth client registration and required domain verification to make the client **public**, plus exact HTTPS callback registration.
 - A backend session (secure, HttpOnly, SameSite cookie), short expiration, state tied to the logged-in user, **atomic one-time consumption** of state, token encryption at rest and revocation/disconnect.
