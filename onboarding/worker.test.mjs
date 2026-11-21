@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 import worker from './worker.mjs';
 const origin='https://onboard.example.com';
 const accountId='0123456789abcdef0123456789abcdef';
+const GENERATED_SHA='a'.repeat(40);
 function harness(){
  const sqlite=new DatabaseSync(':memory:');
  sqlite.exec('PRAGMA foreign_keys = ON');
@@ -27,6 +28,7 @@ function harness(){
     resourceState.repo={id:101,owner:{login:'tester'},name:'esp-willow-studio',description:'Elite Site Pipeline managed site: willow-studio',private:true,default_branch:'main'};
     return Response.json(resourceState.repo,{status:201});
   }
+  if(url===root+'/branches/main')return Response.json({commit:{sha:GENERATED_SHA}});
   if(url===root+'/contents/public/index.html'){
     if(opts.method==='PUT'){resourceState.homepage=true;return Response.json({content:{sha:'abc'}},{status:201})}
     return resourceState.homepage?Response.json({type:'file',sha:'abc'}):new Response('{}',{status:404});
@@ -34,7 +36,7 @@ function harness(){
   if(url===pages+'/esp-willow-studio-site')return resourceState.pages?Response.json({success:true,result:resourceState.pages}):new Response('{}',{status:404});
   if(url===pages && opts.method==='POST'){
     if(resourceState.failPagesOnce){resourceState.failPagesOnce=false;return Response.json({success:false},{status:503})}
-    resourceState.pages={name:'esp-willow-studio-site',production_branch:'main',source:{type:'github',config:{owner:'tester',repo_name:'esp-willow-studio',repo_id:'101'}},canonical_deployment:{id:'deploy-success',latest_stage:{name:'deploy',status:'success'}}};
+    resourceState.pages={name:'esp-willow-studio-site',production_branch:'main',source:{type:'github',config:{owner:'tester',repo_name:'esp-willow-studio',repo_id:'101'}},canonical_deployment:{id:'deploy-success',latest_stage:{name:'deploy',status:'success'},deployment_trigger:{metadata:{commit_hash:GENERATED_SHA}}}};
     return Response.json({success:true,result:resourceState.pages},{status:201});
   }
   if(url==='https://esp-willow-studio-site.pages.dev/')return new Response('<html>Willow Studio</html>',{status:200,headers:{'content-type':'text/html'}});
@@ -100,6 +102,8 @@ test('customer connects both providers, selects verified account, previews and e
   assert.equal(h.sqlite.prepare('SELECT status FROM onboarding_launches').get().status,'pending_deployment');
   assert.equal(h.sqlite.prepare('SELECT count(*) AS c FROM onboarding_launches').get().c,1);
   assert.equal(h.calls.some(x=>x.url.includes('pages/projects')),true);
+  const resultJson=JSON.parse(h.sqlite.prepare('SELECT provision_result FROM onboarding_launches').get().provision_result);
+  assert.equal(resultJson.headCommitSha,GENERATED_SHA);
   const verified=await h.request('/verify',{method:'POST',cookie:sessionCookie,body:form({csrf,id:launchId})});assert.equal(verified.status,303);
   assert.equal(h.sqlite.prepare('SELECT status FROM onboarding_launches').get().status,'live');
   const again=await h.request('/approve',{method:'POST',cookie:sessionCookie,body:form({csrf,id:launchId})});assert.equal(again.status,400);
@@ -210,5 +214,38 @@ test('customer-controlled site names are escaped on review page',async()=>{
   const html=await review.text();
   assert(!html.includes('<img src=x onerror=alert(1)>'));
   assert.match(html,/&lt;img src=x onerror=alert\(1\)&gt;/);
+ }finally{globalThis.fetch=originalFetch}
+});
+
+test('stale successful Pages revision never marks a newly provisioned customer site live',async()=>{
+ const h=harness();globalThis.fetch=h.fetchFn;
+ try{
+  const {sessionCookie}=await bootstrap(h);await connectCloudflare(h,sessionCookie);
+  const csrf=csrfFrom(await (await h.request('/',{cookie:sessionCookie})).text());
+  await h.request('/account',{method:'POST',cookie:sessionCookie,body:form({csrf,accountId})});
+  const pre=await h.request('/preview',{method:'POST',cookie:sessionCookie,body:form({csrf,name:'Willow Studio'})});
+  const id=new URL(origin+pre.headers.get('location')).searchParams.get('id');
+  await h.request('/approve',{method:'POST',cookie:sessionCookie,body:form({csrf,id})});
+  h.resourceState.pages.canonical_deployment.deployment_trigger.metadata.commit_hash='b'.repeat(40);
+  const result=await h.request('/verify',{method:'POST',cookie:sessionCookie,body:form({csrf,id})});
+  assert.equal(result.status,303);
+  assert.equal(h.sqlite.prepare('SELECT status FROM onboarding_launches').get().status,'pending_deployment');
+ }finally{globalThis.fetch=originalFetch}
+});
+test('missing expected commit cannot produce live result even with HTTP 200',async()=>{
+ const h=harness();globalThis.fetch=h.fetchFn;
+ try{
+  const {sessionCookie}=await bootstrap(h);await connectCloudflare(h,sessionCookie);
+  const csrf=csrfFrom(await (await h.request('/',{cookie:sessionCookie})).text());
+  await h.request('/account',{method:'POST',cookie:sessionCookie,body:form({csrf,accountId})});
+  const pre=await h.request('/preview',{method:'POST',cookie:sessionCookie,body:form({csrf,name:'Willow Studio'})});
+  const id=new URL(origin+pre.headers.get('location')).searchParams.get('id');
+  await h.request('/approve',{method:'POST',cookie:sessionCookie,body:form({csrf,id})});
+  const record=h.sqlite.prepare('SELECT provision_result FROM onboarding_launches').get();
+  const config=JSON.parse(record.provision_result);delete config.headCommitSha;
+  h.sqlite.prepare('UPDATE onboarding_launches SET provision_result=?').run(JSON.stringify(config));
+  const result=await h.request('/verify',{method:'POST',cookie:sessionCookie,body:form({csrf,id})});
+  assert.equal(result.status,400);
+  assert.equal(h.sqlite.prepare('SELECT status FROM onboarding_launches').get().status,'pending_deployment');
  }finally{globalThis.fetch=originalFetch}
 });
