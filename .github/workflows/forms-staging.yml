@@ -3,7 +3,7 @@ on:
   pull_request:
     paths: ["forms/**", "pipeline/**", "onboarding/**", ".github/workflows/forms-staging.yml"]
   push:
-    paths: ["forms/**", "pipeline/**", ".github/workflows/forms-staging.yml"]
+    paths: ["forms/**", "pipeline/**", "onboarding/**", ".github/workflows/forms-staging.yml"]
 jobs:
   test:
     runs-on: ubuntu-latest
