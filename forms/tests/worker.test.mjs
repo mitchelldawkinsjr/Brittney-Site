@@ -38,3 +38,20 @@ test("opted-in owner email path invokes configured binding",async()=>{
  assert.equal(r.status,201);assert.equal(sent.length,1);assert.equal(sent[0].to,"owner@example.com");
  }finally{globalThis.fetch=originalFetch}
 });
+
+test("allowed-origin invalid submission exposes error to browser with CORS",async()=>{
+ const r=await call("/api/forms/contact",{method:"POST",headers:{origin,"content-type":"application/json"},body:JSON.stringify({name:"",email:"invalid",message:""})});
+ assert.equal(r.status,400);
+ assert.equal(r.headers.get("access-control-allow-origin"),origin);
+ assert.equal((await r.json()).error,"Invalid fields");
+});
+test("allowed-origin missing bindings exposes 503 with CORS",async()=>{
+ const r=await call("/api/forms/contact",{method:"POST",headers:{origin,"content-type":"application/json"},body:"{}"},{ALLOWED_ORIGIN:origin});
+ assert.equal(r.status,503);
+ assert.equal(r.headers.get("access-control-allow-origin"),origin);
+});
+test("disallowed origin never receives CORS allowance",async()=>{
+ const r=await call("/api/forms/contact",{method:"POST",headers:{origin:"https://attacker.example","content-type":"application/json"},body:"{}"});
+ assert.equal(r.status,403);
+ assert.equal(r.headers.get("access-control-allow-origin"),null);
+});
