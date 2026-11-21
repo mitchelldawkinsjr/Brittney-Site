@@ -79,6 +79,11 @@ export async function applyWebsite(input,{githubToken,cloudflareToken,fetchFn}={
     await api.github(filePath,{method:"PUT",body:{message:"Initialize website for Cloudflare Pages",branch,content:Buffer.from(homepage(input.name),"utf8").toString("base64")}});
     journal.push({resource:"homepage",name:"public/index.html",action:"created"});
   }
+  // Tie launch acceptance to an exact GitHub revision, never just a live Pages URL.
+  const headInfo=await api.github(repoPath+"/branches/"+encodeURIComponent(branch));
+  const headCommitSha=headInfo?.commit?.sha;
+  if(typeof headCommitSha!=="string"||!/^[a-f0-9]{40}$/i.test(headCommitSha))
+    throw Error("Cannot determine the expected GitHub deployment commit; refusing to claim launch readiness");
   const cloudPath="/accounts/"+encodeURIComponent(plan.accountId)+"/pages/projects";
   let project=await api.cloudflare(cloudPath+"/"+encodeURIComponent(pages),{allow404:true});
   if(project){
@@ -96,7 +101,7 @@ export async function applyWebsite(input,{githubToken,cloudflareToken,fetchFn}={
   }
   // Provisioning does NOT imply successful deployment or DNS propagation.
   return {status:"awaiting-live-deployment-verification",repository:"https://github.com/"+owner+"/"+name,
-    website:"https://"+pages+".pages.dev",project:pages,branch,journal,forms:false};
+    website:"https://"+pages+".pages.dev",project:pages,branch,headCommitSha,journal,forms:false};
 }
 export function previewWebsite(input) {
   const plan=planCustomer(input);

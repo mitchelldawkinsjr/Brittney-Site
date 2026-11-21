@@ -8,7 +8,7 @@ This directory contains an **independent Cloudflare Worker** for nontechnical we
 2. Choose **Connect Cloudflare** and approve the minimal Cloudflare scopes, then select an account you own.
 3. Enter a website name, review the planned **private repository** and **public Pages URL**, and explicitly click **Approve and create website**.
 4. The server uses the user's connected tokens to run the existing idempotent `applyWebsite` provisioner. Credentials are never exposed to the browser or logged.
-5. A Pages project may be queued; the customer chooses **Check live deployment**. Only the production deployment and HTTP response verifier can move the status to `live`. On a failed setup, retry reuses exact ownership-matched resources without deleting anything.
+5. A Pages project may be queued; the customer chooses **Check live deployment**. Only a successful canonical production deployment for the **exact approved GitHub commit** plus an HTTP 200 HTML response can move the status to `live`. A previously successful but stale deployment remains pending. On a failed setup, retry reuses exact ownership-matched resources without deleting anything.
 
 Cloudflare's **Workers & Pages GitHub App** requires its **own** installation/authorization on the customer's GitHub account; the Elite Site Pipeline GitHub App connection is not a substitute. A private repository may need to be explicitly added to Cloudflare's GitHub installation if its repository access is restricted.
 
@@ -62,3 +62,7 @@ node --test forms/tests/*.test.mjs pipeline/*.test.mjs onboarding/*.test.mjs
 ```
 
 Tests simulate providers locally with an in-memory SQLite D1 adapter and no real credentials, including callback replay, CSRF rejection, tenant isolation, provisioning retry, and deployment status. Passing tests do **not** establish that the hosted OAuth registrations or production website provisioning works; that requires a separate customer to complete an authorized live test.
+
+## Exact-revision launch acceptance
+
+The provisioner captures the new site's production-branch `headCommitSha`. The onboarding Worker keeps that value inside the approved launch record and checks Cloudflare Pages canonical deployment metadata against it. A queued/new commit while an old commit is live **cannot** be reported as a new successful launch. Retrying after a partial failure checks the current authorized repository head. This is verified in pipeline and onboarding tests.
