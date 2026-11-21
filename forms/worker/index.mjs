@@ -6,6 +6,10 @@ async function captcha(token,secret,ip){if(typeof token!=="string"||!token||toke
 export default {async fetch(req,env){const url=new URL(req.url);if(url.pathname==="/admin"||url.pathname.startsWith("/admin/"))return admin(req,env);if(url.pathname==="/api/health"&&req.method==="GET")return reply({ok:true,mode:"staging"});
 if(url.pathname==="/api/forms/contact"&&req.method==="OPTIONS"){if(req.headers.get("origin")!==env.ALLOWED_ORIGIN)return reply({error:"Origin not allowed"},403);return new Response(null,{status:204,headers:cors(req.headers.get("origin"),env.ALLOWED_ORIGIN)});}
 if(url.pathname!=="/api/forms/contact"||req.method!=="POST")return reply({error:"Not found"},404);
+return handleContact(req,env);
+}};
+async function handleContact(req,env){const origin=req.headers.get("origin");const allowed=origin===env.ALLOWED_ORIGIN;const response=await processContact(req,env);if(!allowed)return response;const headers=new Headers(response.headers);for(const [k,v] of Object.entries(cors(origin,env.ALLOWED_ORIGIN)))headers.set(k,v);return new Response(response.body,{status:response.status,headers});}
+async function processContact(req,env){
 if(!env.TURNSTILE_SECRET||!env.DB||!env.FORM_RATE_LIMITER)return reply({error:"Staging backend not configured"},503);
 if(req.headers.get("origin")!==env.ALLOWED_ORIGIN)return reply({error:"Origin not allowed"},403);
 if(!/^application\/json(?:;|$)/i.test(req.headers.get("content-type")||""))return reply({error:"JSON required"},415);
@@ -16,5 +20,5 @@ const ip=req.headers.get("CF-Connecting-IP")||"unknown";const rate=await env.FOR
 let verified=false;try{verified=await captcha(body.turnstileToken,env.TURNSTILE_SECRET,req.headers.get("CF-Connecting-IP"));}catch(e){console.error("Turnstile unavailable",String(e));return reply({error:"Verification unavailable"},503);}if(!verified)return reply({error:"Verification failed"},400);
 const id=crypto.randomUUID();await env.DB.prepare("INSERT INTO submissions(id,form_id,name,email,message) VALUES(?,?,?,?,?)").bind(id,"contact",body.name.trim(),body.email.trim(),body.message.trim()).run();
 if(env.EMAIL_MODE==="owner_verified"&&env.EMAIL&&env.OWNER_EMAIL&&env.EMAIL_FROM){try{await env.EMAIL.send({from:env.EMAIL_FROM,to:env.OWNER_EMAIL,subject:"New Brittney site inquiry",text:"New inquiry from "+body.name+" ("+body.email+").\n\n"+body.message});}catch(e){console.error("Email notification failed",String(e));}}
-const response=reply({ok:true,id},201);const headers=new Headers(response.headers);for(const [k,v] of Object.entries(cors(req.headers.get("origin"),env.ALLOWED_ORIGIN)))headers.set(k,v);return new Response(response.body,{status:201,headers});
-}};
+return reply({ok:true,id},201);
+}
