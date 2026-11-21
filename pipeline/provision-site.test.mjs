@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {applyWebsite,previewWebsite} from "./provision-site.mjs";
 const input={name:"Test Client",accountId:"0123456789abcdef0123456789abcdef",githubOwner:"tester"};
 const repoName="esp-test-client",pagesName=repoName+"-site";
+const EXPECTED_SHA="a".repeat(40);
 function harness({repoExisting=false,projectExisting=false,otherOwner=false,collision=false,failPages=false}={}) {
  const history=[],state={file:repoExisting,repo:repoExisting?{id:321,name:repoName,description:collision?"Unrelated repository":"Elite Site Pipeline managed site: test-client",private:true,default_branch:"main",owner:{login:"tester"}}:null,
  project:projectExisting?{name:pagesName,production_branch:"main",source:{type:"github",config:{owner:"tester",repo_name:repoName,repo_id:"321"}}}:null};
@@ -15,6 +16,7 @@ function harness({repoExisting=false,projectExisting=false,otherOwner=false,coll
      if(path==="/user"&&method==="GET")return json({login:otherOwner?"someone-else":"tester"});
      if(path==="/repos/tester/"+repoName&&method==="GET")return state.repo?json(state.repo):json({message:"Not found"},404);
      if(path==="/user/repos"&&method==="POST"){state.repo={id:321,name:repoName,owner:{login:"tester"},description:body.description,private:body.private,default_branch:"main"};return json(state.repo,201);}
+     if(path==="/repos/tester/"+repoName+"/branches/main"&&method==="GET")return json({commit:{sha:EXPECTED_SHA}});
      if(path==="/repos/tester/"+repoName+"/contents/public/index.html"&&method==="GET")return state.file?json({type:"file",sha:"abc"}):json({},404);
      if(path==="/repos/tester/"+repoName+"/contents/public/index.html"&&method==="PUT"){
        assert.equal(body.branch,"main");assert.match(Buffer.from(body.content,"base64").toString("utf8"),/Test Client/);
@@ -46,6 +48,7 @@ test("fresh customer creates only private repo, homepage and git-linked Pages pr
  assert.equal(result.status,"awaiting-live-deployment-verification");
  assert.deepEqual(result.journal.map(e=>e.action),["created","created","created"]);
  assert.equal(result.website,"https://"+pagesName+".pages.dev");
+ assert.equal(result.headCommitSha,EXPECTED_SHA);
  assert.equal(h.state.repo.private,true);
  assert(h.state.file&&h.state.project);
 });
