@@ -25,7 +25,7 @@ function harness(){
   const pages='https://api.cloudflare.com/client/v4/accounts/'+accountId+'/pages/projects';
   if(url===root && opts.method!=='POST')return resourceState.repo?Response.json(resourceState.repo):new Response('{}',{status:404});
   if(url==='https://api.github.com/user/repos' && opts.method==='POST'){
-    resourceState.repo={id:101,owner:{login:'tester'},name:'esp-willow-studio',description:'Elite Site Pipeline managed site: willow-studio',private:true,default_branch:'main'};
+    resourceState.repo={id:101,owner:{login:'tester'},name:'esp-willow-studio',description:JSON.parse(opts.body).description,private:true,default_branch:'main'};
     return Response.json(resourceState.repo,{status:201});
   }
   if(url===root+'/branches/main')return Response.json({commit:{sha:GENERATED_SHA}});
@@ -102,6 +102,7 @@ test('customer connects both providers, selects verified account, previews and e
   assert.equal(h.sqlite.prepare('SELECT status FROM onboarding_launches').get().status,'pending_deployment');
   assert.equal(h.sqlite.prepare('SELECT count(*) AS c FROM onboarding_launches').get().c,1);
   assert.equal(h.calls.some(x=>x.url.includes('pages/projects')),true);
+  assert.equal(h.resourceState.repo.description,'Launch & Own managed site: willow-studio');
   const resultJson=JSON.parse(h.sqlite.prepare('SELECT provision_result FROM onboarding_launches').get().provision_result);
   assert.equal(resultJson.headCommitSha,GENERATED_SHA);
   const verified=await h.request('/verify',{method:'POST',cookie:sessionCookie,body:form({csrf,id:launchId})});assert.equal(verified.status,303);
@@ -248,4 +249,12 @@ test('missing expected commit cannot produce live result even with HTTP 200',asy
   assert.equal(result.status,400);
   assert.equal(h.sqlite.prepare('SELECT status FROM onboarding_launches').get().status,'pending_deployment');
  }finally{globalThis.fetch=originalFetch}
+});
+
+test('product onboarding shows Launch & Own identity and customer ownership tagline',async()=>{
+ const h=harness();
+ const result=await h.request('/');
+ const html=await result.text();
+ assert.match(html,/Launch &amp; Own/);
+ assert.match(html,/Describe it\. Launch it\. Own it\./);
 });
