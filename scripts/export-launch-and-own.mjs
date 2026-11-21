@@ -61,7 +61,7 @@ const readme=[
   "",
   "## Source and ownership",
   "",
-  "This export intentionally excludes the Brittney Michelle reference website, customer contact forms, customer data and customer-specific Cloudflare configuration. It does not transfer or copy the original site's DNS, Turnstile widget, D1 records or Access policy.",
+  "This export intentionally excludes the customer-specific reference website, customer contact forms, customer data and customer-specific Cloudflare configuration. It does not transfer or copy the original site's DNS, Turnstile widget, D1 records or Access policy.",
   "",
   "The historical \`esp-\` prefix and legacy managed-resource marker remain for idempotent beta compatibility; **Launch & Own** is the customer-facing product name.",
   "",
